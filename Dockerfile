@@ -10,15 +10,21 @@ RUN apt-get update && apt-get install -y \
 # Copie des fichiers de l'application
 COPY . .
 
+# Création des dossiers nécessaires
+RUN mkdir -p uploads generated
+
 # Installation des dépendances Python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Configuration de l'environnement
 ENV FLASK_APP=run.py
 ENV FLASK_ENV=production
+ENV PORT=8000
+ENV HOST=0.0.0.0
+ENV SECRET_KEY=your-secret-key-here
 
 # Exposition du port
 EXPOSE 8000
 
 # Commande de démarrage
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "run:app"]
+CMD ["gunicorn", "--bind", "$HOST:$PORT", "--workers", "2", "--threads", "4", "--timeout", "120", "run:app"]
