@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+buildCommand = "apt-get update && apt-get install -y libmagic1"
+
+[deploy]
+startCommand = "gunicorn run:app"
+healthcheckPath = "/"
+healthcheckTimeout = 100
+restartPolicyType = "on-failure"
