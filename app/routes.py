@@ -10,8 +10,30 @@ from .utils import (
     analyze_exercises,
     analyze_lexicon
 )
+import logging
 
 bp = Blueprint('main', __name__)
+logger = logging.getLogger(__name__)
+
+@bp.before_app_request
+def check_api_key():
+    """Vérifier si la clé API est configurée avant chaque requête."""
+    if request.endpoint != 'main.health_check':  # Ne pas vérifier pour le health check
+        api_key = os.getenv('GEMINI_API_KEY')
+        if not api_key:
+            return jsonify({
+                'error': 'Configuration manquante',
+                'message': 'La clé API Gemini n\'est pas configurée. Veuillez configurer GEMINI_API_KEY dans les variables d\'environnement.'
+            }), 503
+
+@bp.route('/health-check')
+def health_check():
+    """Route de vérification de santé."""
+    api_key = os.getenv('GEMINI_API_KEY')
+    return jsonify({
+        'status': 'healthy',
+        'api_key_configured': bool(api_key)
+    })
 
 ALLOWED_EXTENSIONS = {'pdf'}
 
