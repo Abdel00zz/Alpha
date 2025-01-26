@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_wtf.csrf import CSRFProtect
 
@@ -21,6 +21,11 @@ def create_app(test_config=None):
     # Créer les dossiers nécessaires
     for folder in [app.config['UPLOAD_FOLDER'], app.config['GENERATED_FOLDER']]:
         os.makedirs(folder, exist_ok=True)
+
+    # Route de healthcheck
+    @app.route('/health')
+    def health_check():
+        return jsonify({"status": "healthy"}), 200
 
     # Enregistrer le blueprint
     from . import routes
