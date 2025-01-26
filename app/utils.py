@@ -2,7 +2,7 @@ import os
 import base64
 import google.generativeai as genai
 from PyPDF2 import PdfReader
-import magic
+import mimetypes
 from flask import current_app
 import logging
 import json
@@ -36,9 +36,18 @@ def is_valid_pdf(file_path):
         if not os.path.exists(file_path):
             return False
             
-        mime = magic.Magic(mime=True)
-        file_type = mime.from_file(file_path)
-        return file_type == 'application/pdf'
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if mime_type != 'application/pdf':
+            return False
+            
+        # Double check with PyPDF2
+        try:
+            with open(file_path, 'rb') as f:
+                PdfReader(f)
+            return True
+        except:
+            return False
+            
     except Exception as e:
         logger.error(f"Erreur lors de la vérification du fichier PDF: {str(e)}")
         return False
