@@ -6,4 +6,3 @@ buildCommand = "apt-get update && apt-get install -y libmagic1"
 startCommand = "gunicorn run:app"
 healthcheckPath = "/"
 healthcheckTimeout = 100
-restartPolicyType = "on-failure"
