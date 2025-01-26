@@ -12,14 +12,44 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+_gemini_model = None
+
 def init_gemini():
     """Initialiser le modèle Gemini."""
+    global _gemini_model
     api_key = os.getenv('GEMINI_API_KEY')
-    if not api_key:
-        raise ValueError("La clé API Gemini n'est pas configurée")
     
-    genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-2.0-flash-thinking-exp-01-21')
+    if not api_key:
+        logger.warning("La clé API Gemini n'est pas configurée dans les variables d'environnement")
+        return None
+    
+    try:
+        genai.configure(api_key=api_key)
+        _gemini_model = genai.GenerativeModel('gemini-pro')
+        return _gemini_model
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation de Gemini: {str(e)}")
+        return None
+
+def get_gemini_model():
+    """Obtenir le modèle Gemini, l'initialiser si nécessaire."""
+    global _gemini_model
+    if _gemini_model is None:
+        _gemini_model = init_gemini()
+    return _gemini_model
+
+def analyze_with_gemini(text, prompt):
+    """Analyser le texte avec Gemini."""
+    model = get_gemini_model()
+    if model is None:
+        raise ValueError("Le modèle Gemini n'est pas initialisé. Veuillez configurer votre clé API dans les paramètres.")
+    
+    try:
+        response = model.generate_content(prompt + "\n\n" + text)
+        return response.text
+    except Exception as e:
+        logger.error(f"Erreur lors de l'analyse avec Gemini: {str(e)}")
+        raise ValueError("Erreur lors de l'analyse. Veuillez vérifier votre clé API et réessayer.")
 
 def extract_text_from_pdf(filepath):
     """Extraire le texte d'un fichier PDF."""
@@ -106,8 +136,7 @@ def save_prompts(prompts):
 
 def analyze_objectives(text):
     """Analyser les objectifs pédagogiques dans le texte."""
-    model = init_gemini()
-    prompt = """Analysez le texte suivant et identifiez les objectifs pédagogiques.
+    return analyze_with_gemini(text, """Analysez le texte suivant et identifiez les objectifs pédagogiques.
     Structurez votre réponse en LaTeX avec les sections suivantes :
     - Objectifs généraux
     - Objectifs spécifiques
@@ -115,14 +144,11 @@ def analyze_objectives(text):
     
     Texte à analyser :
     {text}
-    """
-    response = model.generate_content(prompt.format(text=text))
-    return response.text
+    """)
 
 def analyze_activities(text):
     """Analyser les activités pédagogiques dans le texte."""
-    model = init_gemini()
-    prompt = """Analysez le texte suivant et identifiez les activités pédagogiques.
+    return analyze_with_gemini(text, """Analysez le texte suivant et identifiez les activités pédagogiques.
     Structurez votre réponse en LaTeX avec les sections suivantes :
     - Description de l'activité
     - Modalités de mise en œuvre
@@ -131,14 +157,11 @@ def analyze_activities(text):
     
     Texte à analyser :
     {text}
-    """
-    response = model.generate_content(prompt.format(text=text))
-    return response.text
+    """)
 
 def analyze_exercises(text):
     """Analyser les exercices dans le texte."""
-    model = init_gemini()
-    prompt = """Analysez le texte suivant et identifiez les exercices.
+    return analyze_with_gemini(text, """Analysez le texte suivant et identifiez les exercices.
     Structurez votre réponse en LaTeX avec les sections suivantes :
     - Énoncé
     - Consignes
@@ -147,14 +170,11 @@ def analyze_exercises(text):
     
     Texte à analyser :
     {text}
-    """
-    response = model.generate_content(prompt.format(text=text))
-    return response.text
+    """)
 
 def analyze_lexicon(text):
     """Analyser le lexique dans le texte."""
-    model = init_gemini()
-    prompt = """Analysez le texte suivant et identifiez les termes techniques importants.
+    return analyze_with_gemini(text, """Analysez le texte suivant et identifiez les termes techniques importants.
     Structurez votre réponse en LaTeX avec les sections suivantes :
     - Terme
     - Définition
@@ -163,9 +183,7 @@ def analyze_lexicon(text):
     
     Texte à analyser :
     {text}
-    """
-    response = model.generate_content(prompt.format(text=text))
-    return response.text
+    """)
 
 def generate_latex_section(content, section_type):
     """Générer une section LaTeX à partir du contenu analysé."""
