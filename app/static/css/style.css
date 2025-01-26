@@ -1,0 +1,437 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600&display=swap');
+
+:root {
+    --primary-color: #0ea5e9;
+    --primary-hover: #0b95d7;
+    --bg-light: #f8fafc;
+    --border-radius: 1rem;
+    --success-color: #4cc9f0;
+    --danger-color: #f72585;
+    --warning-color: #f9c74f;
+    --info-color: #4895ef;
+    --text-color: #2b2d42;
+    --border-color: #e5e7eb;
+    --background-color: #f8fafc;
+    --card-background: #ffffff;
+    --transition: all 0.3s ease;
+}
+
+body {
+    font-family: 'Fira Sans', sans-serif;
+    background-color: #f8fafc;
+    color: #2b2d42;
+    line-height: 1.6;
+}
+
+/* Navbar */
+.navbar {
+    background: white;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    padding: 1rem 0;
+}
+
+.navbar-brand {
+    font-weight: 600;
+    color: var(--primary-color) !important;
+}
+
+.navbar-brand:hover {
+    color: var(--primary-hover);
+}
+
+.nav-link {
+    font-weight: 500;
+    color: #2b2d42;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--primary-color);
+}
+
+/* Zone de dépôt */
+#drop-zone {
+    border: 2px dashed #ccc;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+    background-color: white;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+#drop-zone.dragover {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 102, 204, 0.05);
+    transform: scale(1.02);
+}
+
+#drop-zone i {
+    color: var(--primary-color);
+    font-size: 3rem;
+    transition: transform 0.3s ease;
+}
+
+#drop-zone:hover i {
+    transform: translateY(-5px);
+}
+
+/* Boutons d'action */
+.btn-action {
+    width: 100%;
+    margin-bottom: 0.75rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #1a1a1a;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    height: 4.5rem;
+}
+
+.btn-action i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    transition: transform 0.3s ease;
+}
+
+.btn-action:hover {
+    background: linear-gradient(to right, white, #f0f9ff);
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action:hover i {
+    transform: translateY(-2px) scale(1.1);
+}
+
+/* Boutons de résultat */
+.overleaf-form .btn,
+.btn-download,
+.view-result {
+    padding: 0.75rem 1.2rem;
+    border-radius: 0.75rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: var(--primary-color);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    min-width: 140px;
+    position: relative;
+}
+
+.overleaf-form .btn i,
+.btn-download i,
+.view-result i {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+}
+
+.overleaf-form .btn:hover,
+.btn-download:hover,
+.view-result:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+    background: linear-gradient(45deg, #ffffff, #f8fbff);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.12);
+}
+
+.overleaf-form .btn:hover i,
+.btn-download:hover i,
+.view-result:hover i {
+    transform: translateY(-2px);
+}
+
+/* Animation de chargement pour le bouton de téléchargement */
+.btn-download.loading,
+.view-result.loading {
+    pointer-events: none;
+    position: relative;
+    color: transparent;
+}
+
+.btn-download.loading i,
+.view-result.loading i {
+    visibility: hidden;
+}
+
+.btn-download.loading::after,
+.view-result.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top-color: var(--primary-color);
+    border-right-color: var(--primary-color);
+    border-radius: 50%;
+    animation: button-loading-spinner 0.8s linear infinite;
+}
+
+@keyframes button-loading-spinner {
+    from {
+        transform: rotate(0turn);
+    }
+    to {
+        transform: rotate(1turn);
+    }
+}
+
+/* Style du bouton Parcourir */
+#drop-zone .btn-primary {
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: var(--primary-color);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+#drop-zone .btn-primary i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+#drop-zone .btn-primary:hover {
+    transform: translateY(-2px);
+    border-color: var(--primary-color);
+    background: linear-gradient(45deg, #ffffff, #f8fbff);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.12);
+}
+
+#drop-zone .btn-primary:hover i {
+    transform: translateY(-2px);
+}
+
+/* Cartes */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Historique */
+.history-item {
+    border-radius: var(--border-radius);
+    background-color: white;
+    transition: all 0.3s ease;
+    margin-bottom: 0.5rem;
+    padding: 1rem;
+}
+
+.history-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading overlay */
+#loading-overlay {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(4px);
+    z-index: 1050;
+}
+
+.spinner-border {
+    color: var(--primary-color);
+}
+
+/* Formulaire Overleaf */
+.overleaf-form {
+    display: inline-block;
+}
+
+.overleaf-form input[type="submit"] {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.overleaf-form input[type="submit"]:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+}
+
+/* Forms */
+.form-control,
+.form-select {
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+    font-family: 'Fira Sans', sans-serif;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+}
+
+.input-group .btn {
+    padding: 0.75rem;
+}
+
+/* Buttons */
+.btn {
+    padding: 0.75rem 1.2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: white;
+    border: 2px solid #e5e7eb;
+    color: #1a1a1a;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: linear-gradient(to right, white, #f0f9ff);
+    border-color: var(--primary-color);
+    color: #1a1a1a;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--border-color);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+/* Bouton de configuration */
+.config-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    margin-left: 0.5rem;
+}
+
+.config-btn:hover {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: var(--primary-color);
+    transform: rotate(30deg);
+}
+
+.config-btn i {
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.config-btn.active {
+    background-color: rgba(14, 165, 233, 0.1);
+    color: var(--primary-color);
+}
+
+/* Animations */
+@keyframes fadeEnter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-enter {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+/* Loading Spinner */
+.loading {
+    display: inline-block;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 2px solid #e5e7eb;
+    border-top-color: var(--primary-color);
+    border-right-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Result Content */
+.result-content {
+    font-family: 'Fira Code', monospace;
+    line-height: 1.5;
+    font-size: 0.9rem;
+    background-color: var(--background-color);
+    border-radius: 8px;
+    padding: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    
+    .btn-action {
+        margin-bottom: 0.5rem;
+    }
+    
+    .history-item {
+        padding: 0.75rem;
+    }
+}

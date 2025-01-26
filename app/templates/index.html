@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>PDF Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <i class="bx bx-analyse me-2"></i> PDF Analyzer
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link config-btn" href="{{ url_for('main.config') }}" title="Configuration">
+                            <i class="bx bx-cog fs-4"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <div class="row g-4">
+            <!-- Zone de dépôt et d'analyse -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div id="drop-zone" class="text-center p-5">
+                            <i class="bx bx-cloud-upload"></i>
+                            <h5>Déposez votre fichier PDF ici</h5>
+                            <p class="text-muted mb-2">ou</p>
+                            <label class="btn btn-primary">
+                                <i class="bx bx-folder-open me-2"></i>
+                                Parcourir
+                                <input type="file" id="file-input" accept=".pdf" hidden>
+                            </label>
+                        </div>
+                        
+                        <div id="file-info" class="mt-4 d-none">
+                            <div class="d-flex align-items-center mb-4">
+                                <i class="bx bxs-file-pdf fs-2 me-3 text-danger"></i>
+                                <div class="flex-grow-1">
+                                    <h6 id="file-name" class="mb-1"></h6>
+                                    <small id="file-size" class="text-muted"></small>
+                                </div>
+                                <button class="btn btn-link text-danger p-0" id="remove-file">
+                                    <i class="bx bx-x fs-4"></i>
+                                </button>
+                            </div>
+
+                            <div class="actions">
+                                <button class="btn btn-action btn-primary" data-action="objectifs">
+                                    <i class="bx bx-target-lock"></i>
+                                    Analyser les Objectifs
+                                </button>
+                                <button class="btn btn-action btn-info" data-action="activites">
+                                    <i class="bx bx-task"></i>
+                                    Analyser les Activités
+                                </button>
+                                <button class="btn btn-action btn-warning" data-action="exercices">
+                                    <i class="bx bx-book-content"></i>
+                                    Analyser les Exercices
+                                </button>
+                                <button class="btn btn-action btn-danger" data-action="lexique">
+                                    <i class="bx bx-book-alt"></i>
+                                    Analyser le Lexique
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone historique -->
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title mb-0">
+                                <i class="bx bx-history me-2"></i>
+                                Historique
+                            </h5>
+                            <button class="btn btn-link text-muted p-0" id="clear-history">
+                                <i class="bx bx-trash me-1"></i>
+                                Effacer
+                            </button>
+                        </div>
+                        <div id="history-list" class="overflow-auto" style="max-height: 500px">
+                            <!-- Les éléments de l'historique seront ajoutés ici dynamiquement -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Zone de résultat -->
+            <div class="col-12">
+                <div id="result-card" class="card d-none">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="card-title mb-0">
+                                <i class="bx bx-message-square-detail me-2"></i>
+                                Résultat de l'analyse
+                            </h5>
+                            <div class="btn-group">
+                                <form class="overleaf-form me-2" action="https://www.overleaf.com/docs" method="post" target="_blank">
+                                    <input type="hidden" name="snip_uri" id="overleaf-content">
+                                    <input type="submit" value="Ouvrir dans Overleaf" class="btn btn-primary">
+                                </form>
+                                <button class="btn btn-outline-primary" id="save-result">
+                                    <i class="bx bx-download"></i> Télécharger
+                                </button>
+                            </div>
+                        </div>
+                        <div id="result-content" class="result-content"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="position-fixed top-0 start-0 w-100 h-100 d-none">
+        <div class="d-flex align-items-center justify-content-center h-100 bg-white bg-opacity-75">
+            <div class="text-center">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <p class="mb-0">Analyse en cours...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const fileSize = document.getElementById('file-size');
+            const removeFile = document.getElementById('remove-file');
+            const resultCard = document.getElementById('result-card');
+            const resultContent = document.getElementById('result-content');
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const saveResult = document.getElementById('save-result');
+            const historyList = document.getElementById('history-list');
+            const clearHistory = document.getElementById('clear-history');
+            const actionButtons = document.querySelectorAll('.btn-action');
+
+            let currentFile = null;
+
+            // Fonction pour formater la taille du fichier
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            // Fonction pour formater la date
+            function formatDate(date) {
+                return new Date(date).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+
+            // Fonction pour afficher le fichier sélectionné
+            function displayFile(file) {
+                currentFile = file;
+                fileName.textContent = file.name;
+                fileSize.textContent = formatFileSize(file.size);
+                dropZone.classList.add('d-none');
+                fileInfo.classList.remove('d-none');
+                actionButtons.forEach(btn => btn.disabled = false);
+                
+                addToHistory({
+                    type: 'file_selected',
+                    fileName: file.name,
+                    fileSize: formatFileSize(file.size),
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            // Fonction pour réinitialiser l'interface
+            function resetInterface() {
+                currentFile = null;
+                fileInput.value = '';
+                dropZone.classList.remove('d-none');
+                fileInfo.classList.add('d-none');
+                resultCard.classList.add('d-none');
+                actionButtons.forEach(btn => btn.disabled = true);
+                
+                addToHistory({
+                    type: 'file_removed',
+                    timestamp: new Date().toISOString()
+                });
+            }
+
+            // Gestion du drag & drop
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('dragover');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                const file = e.dataTransfer.files[0];
+                if (file && file.type === 'application/pdf') {
+                    displayFile(file);
+                }
+            });
+
+            // Gestion de la sélection de fichier
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    displayFile(file);
+                }
+            });
+
+            // Suppression du fichier
+            removeFile.addEventListener('click', resetInterface);
+
+            // Analyse du fichier
+            actionButtons.forEach(button => {
+                button.addEventListener('click', async () => {
+                    if (!currentFile) return;
+
+                    const action = button.dataset.action;
+                    loadingOverlay.classList.remove('d-none');
+                    
+                    addToHistory({
+                        type: 'analysis_started',
+                        action: action,
+                        fileName: currentFile.name,
+                        timestamp: new Date().toISOString()
+                    });
+
+                    const formData = new FormData();
+                    formData.append('file', currentFile);
+                    formData.append('action', action);
+
+                    try {
+                        const response = await fetch('/analyze', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRFToken': csrfToken
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            resultContent.textContent = data.result;
+                            resultCard.classList.remove('d-none');
+                            document.getElementById('overleaf-content').value = 'data:application/x-tex;base64,' + data.latex_base64;
+                            addToHistory({
+                                type: 'analysis_completed',
+                                action: action,
+                                fileName: currentFile.name,
+                                result: data.result,
+                                timestamp: new Date().toISOString(),
+                                latex_base64: data.latex_base64
+                            });
+                        } else {
+                            throw new Error(data.error);
+                        }
+                    } catch (error) {
+                        addToHistory({
+                            type: 'analysis_failed',
+                            action: action,
+                            fileName: currentFile.name,
+                            error: error.message,
+                            timestamp: new Date().toISOString()
+                        });
+                        alert('Erreur lors de l\'analyse: ' + error.message);
+                    } finally {
+                        loadingOverlay.classList.add('d-none');
+                    }
+                });
+            });
+
+            // Télécharger le résultat
+            saveResult.addEventListener('click', () => {
+                const content = resultContent.textContent;
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                
+                // Création d'un nom de fichier avec la date et l'heure
+                const now = new Date();
+                const dateStr = now.toISOString().slice(0,10);
+                const timeStr = now.toTimeString().slice(0,8).replace(/:/g, '-');
+                const fileName = `analyse_${dateStr}_${timeStr}.txt`;
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                
+                // Animation du bouton
+                saveResult.classList.add('loading');
+                const originalText = saveResult.innerHTML;
+                saveResult.innerHTML = '<i class="bx bx-check me-1"></i>Téléchargé';
+                
+                setTimeout(() => {
+                    saveResult.classList.remove('loading');
+                    saveResult.innerHTML = originalText;
+                }, 2000);
+                
+                // Ajout à l'historique
+                addToHistory({
+                    type: 'result_saved',
+                    fileName: fileName,
+                    timestamp: now.toISOString()
+                });
+            });
+
+            // Gestion de l'historique
+            function addToHistory(item) {
+                const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+                history.unshift(item);
+                if (history.length > 50) history.pop(); // Garder les 50 derniers éléments
+                localStorage.setItem('analysisHistory', JSON.stringify(history));
+                displayHistory();
+            }
+
+            function getActionIcon(type, action) {
+                const icons = {
+                    file_selected: 'bx-file-find',
+                    file_removed: 'bx-x-circle',
+                    analysis_started: 'bx-play-circle',
+                    analysis_completed: 'bx-check-circle',
+                    analysis_failed: 'bx-error-circle',
+                    result_copied: 'bx-copy',
+                    result_saved: 'bx-save'
+                };
+                
+                const actionIcons = {
+                    objectifs: 'bx-target-lock',
+                    activites: 'bx-task',
+                    exercices: 'bx-book-content',
+                    lexique: 'bx-book-alt'
+                };
+                
+                return action ? actionIcons[action] || icons[type] : icons[type];
+            }
+
+            function getActionColor(type) {
+                const colors = {
+                    file_selected: 'primary',
+                    file_removed: 'danger',
+                    analysis_started: 'info',
+                    analysis_completed: 'success',
+                    analysis_failed: 'danger',
+                    result_copied: 'primary',
+                    result_saved: 'primary'
+                };
+                return colors[type] || 'primary';
+            }
+
+            function displayHistory() {
+                const history = JSON.parse(localStorage.getItem('analysisHistory') || '[]');
+                historyList.innerHTML = '';
+
+                if (history.length === 0) {
+                    historyList.innerHTML = `
+                        <div class="text-center text-muted py-4">
+                            <i class="bx bx-info-circle fs-4 mb-2"></i>
+                            <p class="mb-0">Aucun historique</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                history.forEach(item => {
+                    const element = document.createElement('div');
+                    element.className = 'history-item';
+                    
+                    let content = `
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bx ${getActionIcon(item.type, item.action)} text-${getActionColor(item.type)}"></i>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="action-type">${item.type.replace('_', ' ')}</span>
+                                    <span class="timestamp">${formatDate(item.timestamp)}</span>
+                                </div>
+                    `;
+
+                    if (item.fileName) {
+                        content += `<div class="mt-1">${item.fileName}</div>`;
+                    }
+
+                    if (item.action) {
+                        content += `<div class="mt-1 text-muted">Action: ${item.action}</div>`;
+                    }
+
+                    if (item.error) {
+                        content += `<div class="mt-1 text-danger">Erreur: ${item.error}</div>`;
+                    }
+
+                    if (item.overleaf_url) {
+                        content += `<div class="mt-1 text-primary">Lien Overleaf: <a href="${item.overleaf_url}" target="_blank">${item.overleaf_url}</a></div>`;
+                    }
+
+                    content += `</div></div>`;
+                    element.innerHTML = content;
+
+                    if (item.result) {
+                        element.addEventListener('click', () => {
+                            resultContent.textContent = item.result;
+                            resultCard.classList.remove('d-none');
+                            window.scrollTo({ top: resultCard.offsetTop, behavior: 'smooth' });
+                        });
+                        element.style.cursor = 'pointer';
+                    }
+
+                    historyList.appendChild(element);
+                });
+            }
+
+            // Effacer l'historique
+            clearHistory.addEventListener('click', () => {
+                if (confirm('Êtes-vous sûr de vouloir effacer tout l\'historique ?')) {
+                    localStorage.removeItem('analysisHistory');
+                    displayHistory();
+                }
+            });
+
+            // Afficher l'historique au chargement
+            displayHistory();
+        });
+    </script>
+</body>
+</html>
